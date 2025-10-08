@@ -1,0 +1,30 @@
+Nom et prénom: Furkan Ciraci
+
+=== Contenu de Q4.java ===
+public class Q4 {
+    public static void main(String[] args) {
+        // Valeur par défaut de N
+        int N = 4;
+        
+        // Si un argument est fourni, l'utiliser
+        if (args.length > 0) {
+            try {
+                N = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                System.err.println("Erreur: Le paramètre doit être un nombre entier.");
+                System.exit(1);
+            }
+        }
+        
+        // Afficher le triangle
+        for (int i = 1; i <= N; i++) {
+            for (int j = 1; j <= i; j++) {
+                System.out.print(j);
+                if (j < i) {
+                    System.out.print(" ");
+                }
+            }
+            System.out.println();
+        }
+    }
+}
