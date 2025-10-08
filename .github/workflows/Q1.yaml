@@ -21,6 +21,11 @@ jobs:
           git config user.name "FCiraci"
           git config user.email "furkan.ciraci@icloud.com"
       
+      - name: Synchroniser avec le dépôt distant
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+      
       - name: Créer Q1_archive_TOTO.txt
         run: |
           cp TOTO.txt Q1_archive_TOTO.txt
