@@ -1,0 +1,41 @@
+name: Q4 - Créer Archive avec Triangle
+
+on:
+  workflow_dispatch:  # Permet de déclencher manuellement
+  push:
+    branches:
+      - main
+
+jobs:
+  create-archive:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+        
+      - name: Obtenir la date actuelle
+        id: date
+        run: echo "DATE=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
+        
+      - name: Créer le fichier archive
+        run: |
+          FILENAME="Q4_archive_${{ steps.date.outputs.DATE }}.txt"
+          echo "Nom: CIRACI" > $FILENAME
+          echo "Prénom: Francesca" >> $FILENAME
+          echo "" >> $FILENAME
+          echo "=== Contenu de Q4.java ===" >> $FILENAME
+          echo "" >> $FILENAME
+          cat Q4.java >> $FILENAME
+          
+      - name: Configurer Git
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+      - name: Commit et Push du fichier
+        run: |
+          FILENAME="Q4_archive_${{ steps.date.outputs.DATE }}.txt"
+          git add $FILENAME
+          git commit -m "Ajout de $FILENAME via workflow Q4" || echo "Rien à commiter"
+          git push
