@@ -27,4 +27,4 @@ public class Q3 {
             System.out.println("Erreur: Le paramètre doit être un nombre entier");
         }
     }
-
+}
