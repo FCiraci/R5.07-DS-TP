@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0  # Récupère tout l'historique
+          ref: main
       
       - name: Copier TOTO.txt vers Q1_archive_TOTO.txt
         run: |
@@ -38,16 +38,33 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
       
-      - name: Pull des dernières modifications
-        run: |
-          git pull --rebase origin main || git pull --rebase origin master || true
-      
-      - name: Commit et push du nouveau fichier
+      - name: Commit et push avec retry
         run: |
           git add Q1_archive_TOTO.txt
+          
           if git diff --staged --quiet; then
             echo "Aucun changement à commiter"
-          else
-            git commit -m "Archive: Copie de TOTO.txt vers Q1_archive_TOTO.txt"
-            git push
+            exit 0
           fi
+          
+          git commit -m "Archive: Copie de TOTO.txt vers Q1_archive_TOTO.txt"
+          
+          # Tentative de push avec retry (jusqu'à 3 fois)
+          max_attempts=3
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Tentative de push $attempt/$max_attempts"
+            
+            if git push origin main; then
+              echo "Push réussi!"
+              exit 0
+            else
+              echo "Push échoué, tentative de pull et rebase..."
+              git pull --rebase origin main
+              attempt=$((attempt + 1))
+            fi
+          done
+          
+          echo "Échec après $max_attempts tentatives"
+          exit 1
