@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # Récupère tout l'historique
       
       - name: Copier TOTO.txt vers Q1_archive_TOTO.txt
         run: |
@@ -34,11 +35,19 @@ jobs:
       
       - name: Configurer Git
         run: |
-          git config --global user.name "FCiraci"
-          git config --global user.email "furkan.ciraci@icloud.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Pull des dernières modifications
+        run: |
+          git pull --rebase origin main || git pull --rebase origin master || true
       
       - name: Commit et push du nouveau fichier
         run: |
           git add Q1_archive_TOTO.txt
-          git diff --staged --quiet || git commit -m "Archive: Copie de TOTO.txt vers Q1_archive_TOTO.txt"
-          git push
+          if git diff --staged --quiet; then
+            echo "Aucun changement à commiter"
+          else
+            git commit -m "Archive: Copie de TOTO.txt vers Q1_archive_TOTO.txt"
+            git push
+          fi
