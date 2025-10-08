@@ -1,0 +1,129 @@
+name: Q6 - Archive Q6.java avec comparaison
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Q6.java'
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # Récupérer tout l'historique pour trouver l'ancien fichier
+      
+      - name: Configurer Git
+        run: |
+          git config user.name "FCiraci"
+          git config user.email "furkan.ciraci@icloud.com"
+      
+      - name: Synchroniser avec le dépôt distant
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+      
+      - name: Obtenir la date et heure actuelles
+        id: datetime
+        run: |
+          echo "DATETIME=$(date +'%d-%m-%Y-%H%M%S')" >> $GITHUB_OUTPUT
+          echo "DATE=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
+          echo "TIME=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
+      
+      - name: Calculer les statistiques de Q6.java
+        id: stats
+        run: |
+          CHARS=$(wc -c < Q6.java)
+          LINES=$(wc -l < Q6.java)
+          echo "CHARS=$CHARS" >> $GITHUB_OUTPUT
+          echo "LINES=$LINES" >> $GITHUB_OUTPUT
+      
+      - name: Trouver le précédent fichier archive
+        id: previous
+        run: |
+          # Chercher le dernier fichier Q6_archive_*.txt (trié par ordre décroissant)
+          PREVIOUS_FILE=$(ls -t Q6_archive_*.txt 2>/dev/null | head -n 1 || echo "")
+          echo "PREVIOUS_FILE=$PREVIOUS_FILE" >> $GITHUB_OUTPUT
+          if [ -n "$PREVIOUS_FILE" ]; then
+            echo "Fichier précédent trouvé: $PREVIOUS_FILE"
+          else
+            echo "Aucun fichier précédent trouvé"
+          fi
+      
+      - name: Créer Q6_archive_date.txt
+        run: |
+          FILENAME="Q6_archive_${{ steps.datetime.outputs.DATETIME }}.txt"
+          echo "Nom et prénom: Furkan Ciraci" > $FILENAME
+          echo "Date: ${{ steps.datetime.outputs.DATE }}" >> $FILENAME
+          echo "Heure: ${{ steps.datetime.outputs.TIME }}" >> $FILENAME
+          echo "" >> $FILENAME
+          echo "=== Statistiques de Q6.java ===" >> $FILENAME
+          echo "Nombre de caractères: ${{ steps.stats.outputs.CHARS }}" >> $FILENAME
+          echo "Nombre de lignes: ${{ steps.stats.outputs.LINES }}" >> $FILENAME
+          echo "" >> $FILENAME
+          echo "=== Contenu de Q6.java ===" >> $FILENAME
+          cat Q6.java >> $FILENAME
+      
+      - name: Créer Q6_différences.txt
+        run: |
+          CURRENT_FILE="Q6_archive_${{ steps.datetime.outputs.DATETIME }}.txt"
+          PREVIOUS_FILE="${{ steps.previous.outputs.PREVIOUS_FILE }}"
+          
+          if [ -n "$PREVIOUS_FILE" ] && [ -f "$PREVIOUS_FILE" ]; then
+            echo "=== Différences entre $PREVIOUS_FILE et $CURRENT_FILE ===" > Q6_différences.txt
+            echo "" >> Q6_différences.txt
+            echo "Généré le: ${{ steps.datetime.outputs.DATE }} à ${{ steps.datetime.outputs.TIME }}" >> Q6_différences.txt
+            echo "" >> Q6_différences.txt
+            echo "--- Ancien fichier: $PREVIOUS_FILE" >> Q6_différences.txt
+            echo "+++ Nouveau fichier: $CURRENT_FILE" >> Q6_différences.txt
+            echo "" >> Q6_différences.txt
+            
+            # Effectuer la comparaison avec diff
+            diff -u "$PREVIOUS_FILE" "$CURRENT_FILE" >> Q6_différences.txt || true
+            
+            echo "" >> Q6_différences.txt
+            echo "=== Fin des différences ===" >> Q6_différences.txt
+          else
+            echo "=== Première archive de Q6.java ===" > Q6_différences.txt
+            echo "" >> Q6_différences.txt
+            echo "Généré le: ${{ steps.datetime.outputs.DATE }} à ${{ steps.datetime.outputs.TIME }}" >> Q6_différences.txt
+            echo "" >> Q6_différences.txt
+            echo "Aucun fichier précédent trouvé pour comparaison." >> Q6_différences.txt
+            echo "Ceci est la première archive de Q6.java." >> Q6_différences.txt
+          fi
+      
+      - name: Commit et push
+        run: |
+          FILENAME="Q6_archive_${{ steps.datetime.outputs.DATETIME }}.txt"
+          git add $FILENAME Q6_différences.txt
+          
+          # Vérifier s'il y a des changements
+          if git diff --staged --quiet; then
+            echo "Aucun changement à commiter"
+            exit 0
+          fi
+          
+          git commit -m "Q6: Archivage de Q6.java - ${{ steps.datetime.outputs.DATETIME }}"
+          
+          # Push avec retry
+          max_attempts=3
+          attempt=1
+          until git push origin main; do
+            if [ $attempt -ge $max_attempts ]; then
+              echo "Échec après $max_attempts tentatives"
+              exit 1
+            fi
+            echo "Push rejeté, tentative $attempt/$max_attempts..."
+            git pull --rebase origin main
+            attempt=$((attempt + 1))
+          done
