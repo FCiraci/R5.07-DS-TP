@@ -1,15 +1,10 @@
-name: Archive TOTO.txt
+name: Q1 - Archive TOTO.txt
 
 on:
-  workflow_dispatch:  # Permet de déclencher manuellement le workflow
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'TOTO.txt'
+  workflow_dispatch:
 
 jobs:
-  archive-file:
+  archive:
     runs-on: ubuntu-latest
     
     permissions:
@@ -18,45 +13,18 @@ jobs:
     steps:
       - name: Checkout du dépôt
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
       
       - name: Configurer Git
         run: |
           git config user.name "FCiraci"
           git config user.email "furkan.ciraci@icloud.com"
       
-      - name: Récupérer et synchroniser avec main
+      - name: Créer Q1_archive_TOTO.txt
         run: |
-          # Récupérer les dernières modifications
-          git fetch origin main
-          
-          # Forcer le reset sur origin/main (écrase les modifications locales)
-          git reset --hard origin/main
-      
-      - name: Copier TOTO.txt vers Q1_archive_TOTO.txt
-        run: |
-          if [ -f "TOTO.txt" ]; then
-            cp TOTO.txt Q1_archive_TOTO.txt
-            echo "Fichier copié avec succès"
-          else
-            echo "Erreur: TOTO.txt n'existe pas"
-            exit 1
-          fi
+          cp TOTO.txt Q1_archive_TOTO.txt
       
       - name: Commit et push
         run: |
-          # Ajouter le fichier
           git add Q1_archive_TOTO.txt
-          
-          # Vérifier s'il y a des changements à commiter
-          if git diff --staged --quiet; then
-            echo "Aucun changement à commiter"
-          else
-            # Commit
-            git commit -m "Archive: Copie de TOTO.txt vers Q1_archive_TOTO.txt"
-            
-            # Push
-            git push origin HEAD:main
-          fi
+          git commit -m "Q1: Archivage de TOTO.txt"
+          git push
