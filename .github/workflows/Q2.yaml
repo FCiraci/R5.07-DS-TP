@@ -2,6 +2,11 @@ name: Q2 - Archive TOTO.txt avec métadonnées
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'TOTO.txt'
 
 jobs:
   archive:
@@ -16,6 +21,7 @@ jobs:
         with:
           clean: true
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Configurer Git
         run: |
@@ -42,10 +48,24 @@ jobs:
       - name: Commit et push
         run: |
           git add Q2_archive_TOTO.txt
+          
+          # Vérifier s'il y a des changements
+          if git diff --staged --quiet; then
+            echo "Aucun changement à commiter"
+            exit 0
+          fi
+          
           git commit -m "Q2: Archivage de TOTO.txt avec métadonnées"
           
-          # Pull avec rebase pour intégrer les changements distants
-          git pull --rebase origin main
-          
-          # Push
-          git push
+          # Push avec retry
+          max_attempts=3
+          attempt=1
+          until git push origin main; do
+            if [ $attempt -ge $max_attempts ]; then
+              echo "Échec après $max_attempts tentatives"
+              exit 1
+            fi
+            echo "Push rejeté, tentative $attempt/$max_attempts..."
+            git pull --rebase origin main
+            attempt=$((attempt + 1))
+          done
