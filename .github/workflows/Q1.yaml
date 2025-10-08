@@ -1,4 +1,4 @@
-name: Q1 - Archive README.md
+name: Q1 - Archive TOTO.txt
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - 'README.md'
+      - 'TOTO.txt'
 
 jobs:
   archive:
@@ -32,13 +32,13 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
       
-      - name: Créer Q1_archive_README.txt
+      - name: Créer Q1_archive_TOTO.txt
         run: |
-          cp README.md Q1_archive_README.txt
+          cp TOTO.txt Q1_archive_TOTO.txt
       
       - name: Commit et push
         run: |
-          git add Q1_archive_README.txt
+          git add Q1_archive_TOTO.txt
           
           # Vérifier s'il y a des changements
           if git diff --staged --quiet; then
@@ -46,7 +46,7 @@ jobs:
             exit 0
           fi
           
-          git commit -m "Q1: Archivage de README.md"
+          git commit -m "Q1: Archivage de TOTO.txt"
           
           # Push avec retry
           max_attempts=3
