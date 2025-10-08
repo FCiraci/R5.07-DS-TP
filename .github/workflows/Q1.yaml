@@ -2,7 +2,6 @@ name: Archive TOTO.txt
 
 on:
   workflow_dispatch:  # Permet de déclencher manuellement le workflow
-  # ou vous pouvez utiliser d'autres déclencheurs comme:
   # push:
   #   branches:
   #     - main
@@ -14,14 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: write  # Nécessaire pour pousser les modifications
+      contents: write
     
     steps:
       - name: Checkout du dépôt
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: main
+          fetch-depth: 0
       
       - name: Copier TOTO.txt vers Q1_archive_TOTO.txt
         run: |
@@ -35,36 +34,27 @@ jobs:
       
       - name: Configurer Git
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
       
-      - name: Commit et push avec retry
+      - name: Commit et push
         run: |
+          # Récupérer les dernières modifications du dépôt distant
+          git fetch origin main
+          
+          # Rebase sur la dernière version
+          git rebase origin/main
+          
+          # Ajouter le fichier
           git add Q1_archive_TOTO.txt
           
+          # Vérifier s'il y a des changements à commiter
           if git diff --staged --quiet; then
             echo "Aucun changement à commiter"
-            exit 0
-          fi
-          
-          git commit -m "Archive: Copie de TOTO.txt vers Q1_archive_TOTO.txt"
-          
-          # Tentative de push avec retry (jusqu'à 3 fois)
-          max_attempts=3
-          attempt=1
-          
-          while [ $attempt -le $max_attempts ]; do
-            echo "Tentative de push $attempt/$max_attempts"
+          else
+            # Commit
+            git commit -m "Archive: Copie de TOTO.txt vers Q1_archive_TOTO.txt"
             
-            if git push origin main; then
-              echo "Push réussi!"
-              exit 0
-            else
-              echo "Push échoué, tentative de pull et rebase..."
-              git pull --rebase origin main
-              attempt=$((attempt + 1))
-            fi
-          done
-          
-          echo "Échec après $max_attempts tentatives"
-          exit 1
+            # Push
+            git push origin HEAD:main
+          fi
