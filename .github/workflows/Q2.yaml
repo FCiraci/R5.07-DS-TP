@@ -1,4 +1,4 @@
-name: Q2 - Archive TOTO.txt avec métadonnées
+name: Q2 - Archive README.md avec métadonnées
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - 'TOTO.txt'
+      - 'README.md'
 
 jobs:
   archive:
@@ -33,21 +33,21 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
       
-      - name: Créer Q2_archive_TOTO.txt avec métadonnées
+      - name: Créer Q2_archive_README.txt avec métadonnées
         run: |
           # Créer le fichier avec les métadonnées
-          echo "Nom et prénom: Furkan Ciraci" > Q2_archive_TOTO.txt
-          echo "Date et heure d'exécution: $(date '+%Y-%m-%d %H:%M:%S')" >> Q2_archive_TOTO.txt
-          echo "" >> Q2_archive_TOTO.txt
-          echo "=== Contenu de TOTO.txt ===" >> Q2_archive_TOTO.txt
-          cat TOTO.txt >> Q2_archive_TOTO.txt
-          echo "" >> Q2_archive_TOTO.txt
-          echo "=== Informations ===" >> Q2_archive_TOTO.txt
-          echo "Taille de TOTO.txt: $(wc -c < TOTO.txt) octets" >> Q2_archive_TOTO.txt
+          echo "Nom et prénom: Furkan Ciraci" > Q2_archive_README.txt
+          echo "Date et heure d'exécution: $(date '+%Y-%m-%d %H:%M:%S')" >> Q2_archive_README.txt
+          echo "" >> Q2_archive_README.txt
+          echo "=== Contenu de README.md ===" >> Q2_archive_README.txt
+          cat README.md >> Q2_archive_README.txt
+          echo "" >> Q2_archive_README.txt
+          echo "=== Informations ===" >> Q2_archive_README.txt
+          echo "Taille de README.md: $(wc -c < README.md) octets" >> Q2_archive_README.txt
       
       - name: Commit et push
         run: |
-          git add Q2_archive_TOTO.txt
+          git add Q2_archive_README.txt
           
           # Vérifier s'il y a des changements
           if git diff --staged --quiet; then
@@ -55,7 +55,7 @@ jobs:
             exit 0
           fi
           
-          git commit -m "Q2: Archivage de TOTO.txt avec métadonnées"
+          git commit -m "Q2: Archivage de README.md avec métadonnées"
           
           # Push avec retry
           max_attempts=3
