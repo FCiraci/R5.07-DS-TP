@@ -1,9 +1,10 @@
 Nom et prénom: Furkan Ciraci
-Date et heure d'exécution: 2025-10-08 13:56:14
+Date et heure d'exécution: 2025-10-08 14:06:17
 
 === Contenu de TOTO.txt ===
 test toto
 test 2
+test q2
 
 === Informations ===
-Taille de TOTO.txt: 17 octets
+Taille de TOTO.txt: 25 octets
