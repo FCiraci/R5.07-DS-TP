@@ -1,0 +1,40 @@
+name: Q2 - Archive TOTO.txt avec métadonnées
+
+on:
+  workflow_dispatch:
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+        with:
+          clean: true
+      
+      - name: Configurer Git
+        run: |
+          git config user.name "FCiraci"
+          git config user.email "furkan.ciraci@icloud.com"
+      
+      - name: Créer Q2_archive_TOTO.txt avec métadonnées
+        run: |
+          # Créer le fichier avec les métadonnées
+          echo "Nom et prénom: Furkan Ciraci" > Q2_archive_TOTO.txt
+          echo "Date et heure d'exécution: $(date '+%Y-%m-%d %H:%M:%S')" >> Q2_archive_TOTO.txt
+          echo "" >> Q2_archive_TOTO.txt
+          echo "=== Contenu de TOTO.txt ===" >> Q2_archive_TOTO.txt
+          cat TOTO.txt >> Q2_archive_TOTO.txt
+          echo "" >> Q2_archive_TOTO.txt
+          echo "=== Informations ===" >> Q2_archive_TOTO.txt
+          echo "Taille de TOTO.txt: $(wc -c < TOTO.txt) octets" >> Q2_archive_TOTO.txt
+      
+      - name: Commit et push
+        run: |
+          git add Q2_archive_TOTO.txt
+          git commit -m "Q2: Archivage de TOTO.txt avec métadonnées"
+          git push
