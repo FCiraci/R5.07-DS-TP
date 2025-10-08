@@ -1,0 +1,65 @@
+name: Q3 - Archive Q3.java
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Q3.java'
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Configurer Git
+        run: |
+          git config user.name "FCiraci"
+          git config user.email "furkan.ciraci@icloud.com"
+      
+      - name: Synchroniser avec le dépôt distant
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+      
+      - name: Créer Q3_archive_java.txt
+        run: |
+          echo "Nom et prénom: Furkan Ciraci" > Q3_archive_java.txt
+          echo "" >> Q3_archive_java.txt
+          echo "=== Contenu de Q3.java ===" >> Q3_archive_java.txt
+          cat Q3.java >> Q3_archive_java.txt
+      
+      - name: Commit et push
+        run: |
+          git add Q3_archive_java.txt
+          
+          # Vérifier s'il y a des changements
+          if git diff --staged --quiet; then
+            echo "Aucun changement à commiter"
+            exit 0
+          fi
+          
+          git commit -m "Q3: Archivage de Q3.java"
+          
+          # Push avec retry
+          max_attempts=3
+          attempt=1
+          until git push origin main; do
+            if [ $attempt -ge $max_attempts ]; then
+              echo "Échec après $max_attempts tentatives"
+              exit 1
+            fi
+            echo "Push rejeté, tentative $attempt/$max_attempts..."
+            git pull --rebase origin main
+            attempt=$((attempt + 1))
+          done
