@@ -1,41 +1,71 @@
-name: Q4 - Créer Archive avec Triangle
+name: Q4 - Archive Q4.java
 
 on:
-  workflow_dispatch:  # Permet de déclencher manuellement
+  workflow_dispatch:
   push:
     branches:
       - main
+    paths:
+      - 'Q4.java'
 
 jobs:
-  create-archive:
+  archive:
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: write
+    
     steps:
-      - name: Checkout du code
+      - name: Checkout du dépôt
         uses: actions/checkout@v4
-        
-      - name: Obtenir la date actuelle
-        id: date
-        run: echo "DATE=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
-        
-      - name: Créer le fichier archive
-        run: |
-          FILENAME="Q4_archive_${{ steps.date.outputs.DATE }}.txt"
-          echo "Nom: CIRACI" > $FILENAME
-          echo "Prénom: Francesca" >> $FILENAME
-          echo "" >> $FILENAME
-          echo "=== Contenu de Q4.java ===" >> $FILENAME
-          echo "" >> $FILENAME
-          cat Q4.java >> $FILENAME
-          
+        with:
+          clean: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Configurer Git
         run: |
           git config user.name "FCiraci"
           git config user.email "furkan.ciraci@icloud.com"
-          
-      - name: Commit et Push du fichier
+      
+      - name: Synchroniser avec le dépôt distant
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+      
+      - name: Obtenir la date actuelle
+        id: date
+        run: echo "DATE=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
+      
+      - name: Créer Q4_archive_date.txt
+        run: |
+          FILENAME="Q4_archive_${{ steps.date.outputs.DATE }}.txt"
+          echo "Nom et prénom: Furkan Ciraci" > $FILENAME
+          echo "" >> $FILENAME
+          echo "=== Contenu de Q4.java ===" >> $FILENAME
+          cat Q4.java >> $FILENAME
+      
+      - name: Commit et push
         run: |
           FILENAME="Q4_archive_${{ steps.date.outputs.DATE }}.txt"
           git add $FILENAME
-          git commit -m "Ajout de $FILENAME via workflow Q4" || echo "Rien à commiter"
-          git push
+          
+          # Vérifier s'il y a des changements
+          if git diff --staged --quiet; then
+            echo "Aucun changement à commiter"
+            exit 0
+          fi
+          
+          git commit -m "Q4: Archivage de Q4.java - ${{ steps.date.outputs.DATE }}"
+          
+          # Push avec retry
+          max_attempts=3
+          attempt=1
+          until git push origin main; do
+            if [ $attempt -ge $max_attempts ]; then
+              echo "Échec après $max_attempts tentatives"
+              exit 1
+            fi
+            echo "Push rejeté, tentative $attempt/$max_attempts..."
+            git pull --rebase origin main
+            attempt=$((attempt + 1))
+          done
