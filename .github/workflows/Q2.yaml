@@ -15,6 +15,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           clean: true
+          fetch-depth: 0
       
       - name: Configurer Git
         run: |
@@ -37,4 +38,9 @@ jobs:
         run: |
           git add Q2_archive_TOTO.txt
           git commit -m "Q2: Archivage de TOTO.txt avec métadonnées"
+          
+          # Pull avec rebase pour intégrer les changements distants
+          git pull --rebase origin main
+          
+          # Push
           git push
