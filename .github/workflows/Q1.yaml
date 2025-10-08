@@ -22,6 +22,19 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
       
+      - name: Configurer Git
+        run: |
+          git config user.name "FCiraci"
+          git config user.email "furkan.ciraci@icloud.com"
+      
+      - name: Récupérer et synchroniser avec main
+        run: |
+          # Récupérer les dernières modifications
+          git fetch origin main
+          
+          # Forcer le reset sur origin/main (écrase les modifications locales)
+          git reset --hard origin/main
+      
       - name: Copier TOTO.txt vers Q1_archive_TOTO.txt
         run: |
           if [ -f "TOTO.txt" ]; then
@@ -32,19 +45,8 @@ jobs:
             exit 1
           fi
       
-      - name: Configurer Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-      
       - name: Commit et push
         run: |
-          # Récupérer les dernières modifications du dépôt distant
-          git fetch origin main
-          
-          # Rebase sur la dernière version
-          git rebase origin/main
-          
           # Ajouter le fichier
           git add Q1_archive_TOTO.txt
           
