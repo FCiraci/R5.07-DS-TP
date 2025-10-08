@@ -2,6 +2,11 @@ name: Q1 - Archive TOTO.txt
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'TOTO.txt'
 
 jobs:
   archive:
@@ -15,6 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           clean: true
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Configurer Git
         run: |
@@ -33,5 +39,24 @@ jobs:
       - name: Commit et push
         run: |
           git add Q1_archive_TOTO.txt
+          
+          # Vérifier s'il y a des changements
+          if git diff --staged --quiet; then
+            echo "Aucun changement à commiter"
+            exit 0
+          fi
+          
           git commit -m "Q1: Archivage de TOTO.txt"
-          git push
+          
+          # Push avec retry
+          max_attempts=3
+          attempt=1
+          until git push origin main; do
+            if [ $attempt -ge $max_attempts ]; then
+              echo "Échec après $max_attempts tentatives"
+              exit 1
+            fi
+            echo "Push rejeté, tentative $attempt/$max_attempts..."
+            git pull --rebase origin main
+            attempt=$((attempt + 1))
+          done
